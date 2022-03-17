@@ -1,3 +1,4 @@
+# require_relative '/home/kakizaki/workspace/kakizaki/vm.rb'
 # vm = VendingMachine.new
 # vm.slot_money (100)
 # vm.current_slot_money
@@ -10,8 +11,8 @@ class Drink
   def initialize
     @list = {
       Coke: { price: 120, stock: 5},
-      Redbull:{ price: 200, stock: 5},
-      Water:{price: 100, stock: 5}
+      Redbull: { price: 200, stock: 5},
+      Water: { price: 100, stock: 5}
     }
   end
 end
@@ -21,8 +22,8 @@ class VendingMachine
   MONEY = [10, 50, 100, 500, 1000].freeze
 
   def initialize
-    @sale_amount = 0 #売上金額
-    @slot_money = 0 # 最初の自動販売機に入っている金額は0円
+    @sale_amount = 0 
+    @slot_money = 0 
     @drink = Drink.new
   end
 
@@ -45,25 +46,53 @@ class VendingMachine
   end
 
   def purchase(drink_menu)
+    return "お金が足りません" unless @slot_money > drink.list[drink_menu][:price]
+    return "在庫がありません" unless drink.list[drink_menu][:stock] > 0
     if @slot_money >= drink.list[drink_menu][:price] && drink.list[drink_menu][:stock] > 0
        puts drink.list[drink_menu][:stock] -= 1
        puts @slot_money -= drink.list[drink_menu][:price]
        puts @sale_amount += drink.list[drink_menu][:price]
-    elsif @slot_money < drink.list[drink_menu][:price]
-      return "お金が足りません"
-    elsif drink.list[drink_menu][:stock] <= 0
-      return "在庫がありません"
     end
   end
 
-   #hashのkeyを取り出す方法が？？？
-  def purchasable
-    if @slot_money >= drink.list[:Redbull][:price]
-      return drink.list.keys
-    elsif @slot_money >= drink.list[:Coke][:price]
-      return drink.list.keys[0,2]
-    elsif @slot_money >= drink.list[:Water][:price]
-      return drink.list.keys[2]
-    end
+  # def purchasable
+  #   drink.list.select do |_, val|
+  #     val[:price] <= current_slot_money && val[:stock] > 0
+  #   end.keys
+  # end
+
+  def purchasable_list
+    drink.list.map do |key, val|
+      key if val[:stock] > 0 && val[:price] <= current_slot_money
+    end.compact
+  end
+
+
+  
+# #吉住さん案
+#   def purchasable 
+#     purchasable_list = self.drink.list.values.sort{|a,b| a[:price]<=>b[:price]}
+#     if @slot_money >= purchasable_list[2][:price] 
+#       return purchasable_list[0..2]
+#     elsif @slot_money >= purchasable_list[1][:price]
+#       return purchasable_list[0,2]
+#     elsif @slot_money >= purchasable_list[0][:price]
+#       return purchasable_list[0]
+#     end
+#   end
+
+#   # 柿崎案 hashのkeyを取り出す方法が？？？
+#   def purchasable
+#     if @slot_money >= drink.list[:Redbull][:price] && drink.list[:stock] > 0
+#       return drink.list.keys
+#     elsif @slot_money >= drink.list[:Coke][:price]
+#       return drink.list.keys[0,2]
+#     elsif @slot_money >= drink.list[:Water][:price]
+#       return drink.list.keys[2]
+#     end
+#   end
+
+  def store(drink_menu)
+    puts drink.list[drink_menu][:stock] += 1
   end
 end
